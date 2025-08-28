@@ -4,6 +4,7 @@
 # 使用 WebSocket 與 rosbridge_server 通信，避免庫衝突
 # 可以遠端暫停，不會當機
 # 改成ros service版本
+# 透過websocket會無法正確中斷進行中的導航任務，在電腦自己送沒問題
 
 """
 Auto Navigation Extension for Isaac Sim with ROS Integration
