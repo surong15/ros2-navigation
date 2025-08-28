@@ -1,0 +1,11 @@
+[package]
+description = "Auto Navigation Extension for Isaac Sim: Enter target coordinates to automatically navigate robot to specified position"
+title = "ROS2 NAVIGATION"
+category = "Isaac Sim"
+version = "1.0.0"
+
+[[python.module]]
+name = "ros2_navigation_python"
+
+[dependencies]
+# Dependencies on Isaac Sim/Omniverse standard APIs
