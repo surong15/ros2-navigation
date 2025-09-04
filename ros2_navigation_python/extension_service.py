@@ -1,5 +1,4 @@
-# Copyright (c) 2022-2025, Your Name or Company. All rights reserved.
-# 僅可使用baymax
+# 僅可使用ROBOTNAME
 # 可用座標連續導航，無法躲避障礙物
 # 使用 WebSocket 與 rosbridge_server 通信，避免庫衝突
 # 可以遠端暫停，不會當機
@@ -195,7 +194,7 @@ if WEBSOCKET_AVAILABLE:
                     print(f"[AutoNav]   ID: {call_id}")
                     print(f"[AutoNav]   參數: {json.dumps(args, indent=2)}")
                     
-                    if service == "/baymax/set_goal_pose":
+                    if service == "/ROBOTNAME/set_goal_pose":
                         self._handle_set_goal_pose_service(args, call_id, service)
                         
                 elif op == "publish":
@@ -203,11 +202,11 @@ if WEBSOCKET_AVAILABLE:
                     topic = data.get("topic")
                     msg = data.get("msg", {})
                     
-                    if topic == "/baymax/tf":
+                    if topic == "/ROBOTNAME/tf":
                         self._parse_tf_message(msg)
-                    elif topic == "/baymax/navigation_stop":
+                    elif topic == "/ROBOTNAME/navigation_stop":
                         # std_msgs/Empty 格式 - 停止導航
-                        # ros2 topic pub --once /baymax/navigation_stop std_msgs/Empty "{}"
+                        # ros2 topic pub --once /ROBOTNAME/navigation_stop std_msgs/Empty "{}"
                         current_time = time.time()
                         print(f"[AutoNav] 🛑 收到停止導航指令 via topic (時間: {current_time:.3f})")
                         print(f"[AutoNav] 🛑 Stop 訊息內容: {json.dumps(msg)}")
@@ -244,7 +243,7 @@ if WEBSOCKET_AVAILABLE:
                             print("[AutoNav] 🛑 導航未啟動，但仍設置停止標誌以防萬一")
                     else:
                         # 顯示其他未處理的 topic，幫助調試
-                        if topic not in ["/baymax/navigation_status", "/baymax/robot_pose"]:
+                        if topic not in ["/ROBOTNAME/navigation_status", "/ROBOTNAME/robot_pose"]:
                             print(f"[AutoNav] 📩 收到未處理的 topic: {topic}")
                 
                 # 其他重要操作才顯示
@@ -413,7 +412,7 @@ if WEBSOCKET_AVAILABLE:
                     
                     # 尋找機器人的框架
                     if ("base_link" in child_frame_id or 
-                        "baymax" in child_frame_id or 
+                        "ROBOTNAME" in child_frame_id or 
                         "robot" in child_frame_id or
                         "tn__" in child_frame_id or
                         "R05D00002" in child_frame_id):
@@ -457,7 +456,7 @@ if WEBSOCKET_AVAILABLE:
                 {
                     "op": "advertise_service",
                     "type": "msgs_interface/srv/SetGoalPose",  # 修正：添加 /srv/
-                    "service": "/baymax/set_goal_pose"
+                    "service": "/ROBOTNAME/set_goal_pose"
                 }
             ]
             
@@ -472,25 +471,25 @@ if WEBSOCKET_AVAILABLE:
             """仍然需要訂閱 TF topic 來獲取機器人位置"""
             tf_subscription = {
                 "op": "subscribe",
-                "topic": "/baymax/tf",
+                "topic": "/ROBOTNAME/tf",
                 "type": "tf2_msgs/TFMessage"
             }
             
             if self.connected and self.ws:
                 self.ws.send(json.dumps(tf_subscription))
-                print(f"[AutoNav] 訂閱 TF topic: /baymax/tf")
+                print(f"[AutoNav] 訂閱 TF topic: /ROBOTNAME/tf")
         
         def _subscribe_to_stop_topic(self):
             """訂閱 navigation stop topic - 只訂閱，不廣告（因為我們是接收方）"""
             stop_subscription = {
                 "op": "subscribe",
-                "topic": "/baymax/navigation_stop",
+                "topic": "/ROBOTNAME/navigation_stop",
                 "type": "std_msgs/Empty"
             }
             
             if self.connected and self.ws:
                 self.ws.send(json.dumps(stop_subscription))
-                print(f"[AutoNav] 🛑 訂閱 Stop topic: /baymax/navigation_stop (std_msgs/Empty)")
+                print(f"[AutoNav] 🛑 訂閱 Stop topic: /ROBOTNAME/navigation_stop (std_msgs/Empty)")
                 time.sleep(0.1)  # 小延遲確保訂閱生效
         
         def _advertise_publishing_topics(self):
@@ -498,12 +497,12 @@ if WEBSOCKET_AVAILABLE:
             topics = [
                 {
                     "op": "advertise",
-                    "topic": "/baymax/navigation_status",
+                    "topic": "/ROBOTNAME/navigation_status",
                     "type": "std_msgs/String"
                 },
                 {
                     "op": "advertise",
-                    "topic": "/baymax/robot_pose", 
+                    "topic": "/ROBOTNAME/robot_pose", 
                     "type": "geometry_msgs/PoseStamped"
                 }
             ]
@@ -521,7 +520,7 @@ if WEBSOCKET_AVAILABLE:
                         # 發布導航狀態
                         status_msg = {
                             "op": "publish",
-                            "topic": "/baymax/navigation_status",
+                            "topic": "/ROBOTNAME/navigation_status",
                             "msg": {"data": str(self.nav_ext.status)}
                         }
                         if self.connected and self.ws:
@@ -545,7 +544,7 @@ if WEBSOCKET_AVAILABLE:
                             
                             pose_msg = {
                                 "op": "publish",
-                                "topic": "/baymax/robot_pose",
+                                "topic": "/ROBOTNAME/robot_pose",
                                 "msg": {
                                     "header": {
                                         "stamp": {"sec": int(time.time()), "nanosec": 0},
@@ -802,11 +801,11 @@ class Extension(omni.ext.IExt):
             self.ros_bridge_client = RosBridgeWebSocketClient(self)
             print("[AutoNav] ROS Bridge WebSocket 整合已啟動")
             print("[AutoNav] 可通過以下 topics 接收座標:")
-            print("[AutoNav]   - /baymax/navigation_goal (geometry_msgs/PoseStamped)")
-            print("[AutoNav]   - /baymax/navigation_coordinates (std_msgs/String)")
-            print("[AutoNav]   - /baymax/navigation_stop (std_msgs/Empty)")
-            print("[AutoNav]     使用命令: ros2 topic pub --once /baymax/navigation_stop std_msgs/Empty \"{}\"")
-            print("[AutoNav]   - /baymax/tf (tf2_msgs/TFMessage) [機器人位置]")
+            print("[AutoNav]   - /ROBOTNAME/navigation_goal (geometry_msgs/PoseStamped)")
+            print("[AutoNav]   - /ROBOTNAME/navigation_coordinates (std_msgs/String)")
+            print("[AutoNav]   - /ROBOTNAME/navigation_stop (std_msgs/Empty)")
+            print("[AutoNav]     使用命令: ros2 topic pub --once /ROBOTNAME/navigation_stop std_msgs/Empty \"{}\"")
+            print("[AutoNav]   - /ROBOTNAME/tf (tf2_msgs/TFMessage) [機器人位置]")
             print("[AutoNav] 確保 rosbridge_server 在 localhost:9090 運行")
             
             # 在 UI 建立後再嘗試連接
@@ -1102,10 +1101,10 @@ class Extension(omni.ext.IExt):
                 ui.Spacer(height=10)
                 ui.Label("ROS Coordinate Reception (via rosbridge_websocket):")
                 if WEBSOCKET_AVAILABLE:
-                    ui.Label("Navigation: /baymax/navigation_goal, /baymax/navigation_coordinates", style={"color": 0xFF888888})
-                    ui.Label("Position Source: /baymax/tf (TF Transform)", style={"color": 0xFF888888})
-                    ui.Label("Stop: /baymax/navigation_stop", style={"color": 0xFF888888})
-                    ui.Label("  命令: ros2 topic pub --once /baymax/navigation_stop std_msgs/Empty \"{}\"", style={"color": 0xFF666666})
+                    ui.Label("Navigation: /ROBOTNAME/navigation_goal, /ROBOTNAME/navigation_coordinates", style={"color": 0xFF888888})
+                    ui.Label("Position Source: /ROBOTNAME/tf (TF Transform)", style={"color": 0xFF888888})
+                    ui.Label("Stop: /ROBOTNAME/navigation_stop", style={"color": 0xFF888888})
+                    ui.Label("  命令: ros2 topic pub --once /ROBOTNAME/navigation_stop std_msgs/Empty \"{}\"", style={"color": 0xFF666666})
                     ui.Label("Ensure rosbridge_server is running on localhost:9090", style={"color": 0xFF888888})
                     
                     # ROS Bridge 重新連接按鈕
@@ -1117,8 +1116,8 @@ class Extension(omni.ext.IExt):
                 self.last_ros_coords_label = ui.Label(f"Last ROS Coordinates: {self.last_ros_coordinates}", style={"color": 0xFF00FFAA})
                 ui.Label("ROS Service Reception (via rosbridge_websocket):")
                 if WEBSOCKET_AVAILABLE:
-                    ui.Label("Service: /baymax/set_goal_pose (msgs_interface/SetGoalPose)", style={"color": 0xFF888888})
-                    ui.Label("Position Source: /baymax/tf (TF Transform)", style={"color": 0xFF888888})
+                    ui.Label("Service: /ROBOTNAME/set_goal_pose (msgs_interface/SetGoalPose)", style={"color": 0xFF888888})
+                    ui.Label("Position Source: /ROBOTNAME/tf (TF Transform)", style={"color": 0xFF888888})
                     ui.Label("Response: Waits for navigation completion", style={"color": 0xFF888888})
                     ui.Label("Ensure rosbridge_server is running on localhost:9090", style={"color": 0xFF888888})
 
@@ -1409,7 +1408,7 @@ class Extension(omni.ext.IExt):
             
             # 到達目標 - 優先檢查距離
             if dist < dist_thres:
-                # 參考 baymax_move 的停止邏輯
+                # 參考 ROBOTNAME_move 的停止邏輯
                 self._stop_all_movement()
                 self.status = "Target Reached!"
                 if hasattr(self, 'status_label'):
@@ -1493,7 +1492,7 @@ class Extension(omni.ext.IExt):
             print(f"[AutoNav] Exception: {e}")
 
     def _change_wheel_velocity(self, L_velocity, R_velocity):
-        """設置輪子速度，參考 baymax_move 的邏輯"""
+        """設置輪子速度，參考 ROBOTNAME_move 的邏輯"""
         # 在實際設置輪子速度前進行最後檢查（不重複執行停止邏輯）
         if getattr(self, "_ros_stop_requested", False) or getattr(self, "_force_stop", False) or not self.nav_active:
             # 只設置速度為 0，不執行完整的停止邏輯（避免重複）
@@ -1513,7 +1512,7 @@ class Extension(omni.ext.IExt):
             print(f"[AutoNav][Error] Failed to set wheel velocity: {e}")
     
     def _stop_all_movement(self):
-        """完全停止所有移動，參考 baymax_move 的邏輯"""
+        """完全停止所有移動，參考 ROBOTNAME_move 的邏輯"""
         try:
             # 強制設置輪子速度為 0，並重複設置以確保生效
             for _ in range(3):
