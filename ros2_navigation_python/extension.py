@@ -1,5 +1,5 @@
 # Copyright (c) 2022-2025, Your Name or Company. All rights reserved.
-# 僅可使用baymax
+# 僅可使用ROBOTNAME
 # 可用座標連續導航，無法躲避障礙物
 # 使用 WebSocket 與 rosbridge_server 通信，避免庫衝突
 # 可以遠端暫停，不會當機
@@ -185,7 +185,7 @@ if WEBSOCKET_AVAILABLE:
                     topic = data.get("topic")
                     msg = data.get("msg", {})
                     
-                    if topic == "/baymax/navigation_goal":
+                    if topic == "/ROBOTNAME/navigation_goal":
                         # PoseStamped 格式
                         pose = msg.get("pose", {})
                         position = pose.get("position", {})
@@ -195,17 +195,17 @@ if WEBSOCKET_AVAILABLE:
                         print(f"[AutoNav] 收到 PoseStamped 目標: ({x:.2f}, {y:.2f}, {z:.2f})")
                         self.nav_ext.set_target_from_ros(x, y, z)
                         
-                    elif topic == "/baymax/navigation_coordinates":
+                    elif topic == "/ROBOTNAME/navigation_coordinates":
                         # String 格式
                         coord_str = msg.get("data", "")
                         self._parse_coordinate_string(coord_str)
                         
-                    elif topic == "/baymax/navigation_stop":
+                    elif topic == "/ROBOTNAME/navigation_stop":
                         # Empty 格式 - 停止導航
                         print("[AutoNav] 收到停止導航指令 (ROS topic)")
                         self.nav_ext._ros_stop_requested = True
                     
-                    elif topic == "/baymax/tf":
+                    elif topic == "/ROBOTNAME/tf":
                         # TF 格式 - 更新機器人位置
                         self._parse_tf_message(msg)
                         
@@ -222,7 +222,7 @@ if WEBSOCKET_AVAILABLE:
                     
                     # 尋找機器人的框架 - 包括更廣泛的模式
                     if ("base_link" in child_frame_id or 
-                        "baymax" in child_frame_id or 
+                        "ROBOTNAME" in child_frame_id or 
                         "robot" in child_frame_id or
                         "tn__" in child_frame_id or  # 包括 Isaac Sim 的命名模式
                         "R05D00002" in child_frame_id):  # 包括機器人模型名稱
@@ -287,22 +287,22 @@ if WEBSOCKET_AVAILABLE:
             topics = [
                 {
                     "op": "advertise",
-                    "topic": "/baymax/navigation_goal",
+                    "topic": "/ROBOTNAME/navigation_goal",
                     "type": "geometry_msgs/PoseStamped"
                 },
                 {
                     "op": "advertise", 
-                    "topic": "/baymax/navigation_coordinates",
+                    "topic": "/ROBOTNAME/navigation_coordinates",
                     "type": "std_msgs/String"
                 },
                 {
                     "op": "advertise",
-                    "topic": "/baymax/navigation_stop", 
+                    "topic": "/ROBOTNAME/navigation_stop", 
                     "type": "std_msgs/Empty"
                 },
                 {
                     "op": "advertise",
-                    "topic": "/baymax/tf",
+                    "topic": "/ROBOTNAME/tf",
                     "type": "tf2_msgs/TFMessage"
                 }
             ]
@@ -319,22 +319,22 @@ if WEBSOCKET_AVAILABLE:
             topics = [
                 {
                     "op": "subscribe",
-                    "topic": "/baymax/navigation_goal",
+                    "topic": "/ROBOTNAME/navigation_goal",
                     "type": "geometry_msgs/PoseStamped"
                 },
                 {
                     "op": "subscribe", 
-                    "topic": "/baymax/navigation_coordinates",
+                    "topic": "/ROBOTNAME/navigation_coordinates",
                     "type": "std_msgs/String"
                 },
                 {
                     "op": "subscribe",
-                    "topic": "/baymax/navigation_stop", 
+                    "topic": "/ROBOTNAME/navigation_stop", 
                     "type": "std_msgs/Empty"
                 },
                 {
                     "op": "subscribe",
-                    "topic": "/baymax/tf",
+                    "topic": "/ROBOTNAME/tf",
                     "type": "tf2_msgs/TFMessage"
                 }
             ]
@@ -349,12 +349,12 @@ if WEBSOCKET_AVAILABLE:
             topics = [
                 {
                     "op": "advertise",
-                    "topic": "/baymax/navigation_status",
+                    "topic": "/ROBOTNAME/navigation_status",
                     "type": "std_msgs/String"
                 },
                 {
                     "op": "advertise",
-                    "topic": "/baymax/robot_pose", 
+                    "topic": "/ROBOTNAME/robot_pose", 
                     "type": "geometry_msgs/PoseStamped"
                 }
             ]
@@ -372,7 +372,7 @@ if WEBSOCKET_AVAILABLE:
                         # 發布導航狀態
                         status_msg = {
                             "op": "publish",
-                            "topic": "/baymax/navigation_status",
+                            "topic": "/ROBOTNAME/navigation_status",
                             "msg": {"data": str(self.nav_ext.status)}
                         }
                         if self.connected and self.ws:
@@ -402,7 +402,7 @@ if WEBSOCKET_AVAILABLE:
                             
                             pose_msg = {
                                 "op": "publish",
-                                "topic": "/baymax/robot_pose",
+                                "topic": "/ROBOTNAME/robot_pose",
                                 "msg": {
                                     "header": {
                                         "stamp": {"sec": int(time.time()), "nanosec": 0},
@@ -647,10 +647,10 @@ class Extension(omni.ext.IExt):
             self.ros_bridge_client = RosBridgeWebSocketClient(self)
             print("[AutoNav] ROS Bridge WebSocket 整合已啟動")
             print("[AutoNav] 可通過以下 topics 接收座標:")
-            print("[AutoNav]   - /baymax/navigation_goal (geometry_msgs/PoseStamped)")
-            print("[AutoNav]   - /baymax/navigation_coordinates (std_msgs/String)")
-            print("[AutoNav]   - /baymax/navigation_stop (std_msgs/Empty)")
-            print("[AutoNav]   - /baymax/tf (tf2_msgs/TFMessage) [機器人位置]")
+            print("[AutoNav]   - /ROBOTNAME/navigation_goal (geometry_msgs/PoseStamped)")
+            print("[AutoNav]   - /ROBOTNAME/navigation_coordinates (std_msgs/String)")
+            print("[AutoNav]   - /ROBOTNAME/navigation_stop (std_msgs/Empty)")
+            print("[AutoNav]   - /ROBOTNAME/tf (tf2_msgs/TFMessage) [機器人位置]")
             print("[AutoNav] 確保 rosbridge_server 在 localhost:9090 運行")
             
             # 在 UI 建立後再嘗試連接
@@ -910,9 +910,9 @@ class Extension(omni.ext.IExt):
                 ui.Spacer(height=10)
                 ui.Label("ROS Coordinate Reception (via rosbridge_websocket):")
                 if WEBSOCKET_AVAILABLE:
-                    ui.Label("Navigation: /baymax/navigation_goal, /baymax/navigation_coordinates", style={"color": 0xFF888888})
-                    ui.Label("Position Source: /baymax/tf (TF Transform)", style={"color": 0xFF888888})
-                    ui.Label("Stop: /baymax/navigation_stop", style={"color": 0xFF888888})
+                    ui.Label("Navigation: /ROBOTNAME/navigation_goal, /ROBOTNAME/navigation_coordinates", style={"color": 0xFF888888})
+                    ui.Label("Position Source: /ROBOTNAME/tf (TF Transform)", style={"color": 0xFF888888})
+                    ui.Label("Stop: /ROBOTNAME/navigation_stop", style={"color": 0xFF888888})
                     ui.Label("Ensure rosbridge_server is running on localhost:9090", style={"color": 0xFF888888})
                     
                     # ROS Bridge 重新連接按鈕
@@ -1172,7 +1172,7 @@ class Extension(omni.ext.IExt):
             
             # 到達目標 - 優先檢查距離
             if dist < dist_thres:
-                # 參考 baymax_move 的停止邏輯
+                # 參考 ROBOTNAME_move 的停止邏輯
                 self._stop_all_movement()
                 self.status = "Target Reached!"
                 if hasattr(self, 'status_label'):
@@ -1232,7 +1232,7 @@ class Extension(omni.ext.IExt):
             print(f"[AutoNav] Exception: {e}")
 
     def _change_wheel_velocity(self, L_velocity, R_velocity):
-        """設置輪子速度，參考 baymax_move 的邏輯"""
+        """設置輪子速度，參考 ROBOTNAME_move 的邏輯"""
         stage = omni.usd.get_context().get_stage()
         try:
             wheel_L_01_drive = UsdPhysics.DriveAPI.Get(stage.GetPrimAtPath(f"{self.robot_prim_path}/joints/wheel_L_01"), "angular")
@@ -1246,7 +1246,7 @@ class Extension(omni.ext.IExt):
             print(f"[AutoNav][Error] Failed to set wheel velocity: {e}")
     
     def _stop_all_movement(self):
-        """完全停止所有移動，參考 baymax_move 的邏輯"""
+        """完全停止所有移動，參考 ROBOTNAME_move 的邏輯"""
         try:
             # 強制設置輪子速度為 0，並重複設置以確保生效
             for _ in range(3):
