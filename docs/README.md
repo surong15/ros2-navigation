@@ -11,7 +11,7 @@
 - **ROS 整合**：透過 rosbridge 接收 ROS Topic 中的導航座標與停止指令  
 - **相機發布**：支援將 Isaac Sim 的相機畫面與相機資訊發布到 ROS2 Topic  
 - **UI 操作**：提供簡易的控制介面，可輸入座標、開始/停止導航、控制相機發布  
-- **狀態回報**：發布 `/baymax/navigation_status` 與 `/baymax/robot_pose`  
+- **狀態回報**：發布 `/ROBOTNAME/navigation_status` 與 `/ROBOTNAME/robot_pose`  
 
 ---
 
@@ -43,8 +43,8 @@
      ```
    - 在 ROS 環境檢查：  
      ```bash
-     ros2 topic echo /baymax/navigation_status
-     ros2 topic echo /baymax/robot_pose
+     ros2 topic echo /ROBOTNAME/navigation_status
+     ros2 topic echo /ROBOTNAME/robot_pose
      ```
 
 ---
@@ -52,14 +52,14 @@
 ## 📡 ROS Topics
 
 ### 訂閱 (從 ROS → Isaac Sim)
-- `/baymax/navigation_goal` (`geometry_msgs/PoseStamped`)：導航目標座標  
-- `/baymax/navigation_coordinates` (`std_msgs/String`)：字串座標輸入 (例如 `"2.0, 3.0, 0.0"`)  
-- `/baymax/navigation_stop` (`std_msgs/Empty`)：停止導航  
-- `/baymax/tf` (`tf2_msgs/TFMessage`)：TF，用於更新機器人位置與方向  
+- `/ROBOTNAME/navigation_goal` (`geometry_msgs/PoseStamped`)：導航目標座標  
+- `/ROBOTNAME/navigation_coordinates` (`std_msgs/String`)：字串座標輸入 (例如 `"2.0, 3.0, 0.0"`)  
+- `/ROBOTNAME/navigation_stop` (`std_msgs/Empty`)：停止導航  
+- `/ROBOTNAME/tf` (`tf2_msgs/TFMessage`)：TF，用於更新機器人位置與方向  
 
 ### 發布 (從 Isaac Sim → ROS)
-- `/baymax/navigation_status` (`std_msgs/String`)：導航狀態回報  
-- `/baymax/robot_pose` (`geometry_msgs/PoseStamped`)：機器人當前位置  
+- `/ROBOTNAME/navigation_status` (`std_msgs/String`)：導航狀態回報  
+- `/ROBOTNAME/robot_pose` (`geometry_msgs/PoseStamped`)：機器人當前位置  
 - `/isaac/camera/persp` (`sensor_msgs/Image`)：相機 RGB 影像  
 - `/isaac/camera/persp_camera_info` (`sensor_msgs/CameraInfo`)：相機內參  
 
@@ -139,7 +139,7 @@ freq=30, width=640, height=480
 source install/setup.bash
 ```
 ```python
-ros2 service call /baymax/set_goal_pose msgs_interface/srv/SetGoalPose "
+ros2 service call /ROBOTNAME/set_goal_pose msgs_interface/srv/SetGoalPose "
 {
 task_mode: 0,
 task_times: 1,
