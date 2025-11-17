@@ -1,47 +1,47 @@
 # Isaac Sim Auto Navigation Extension (with ROS Integration)
 
-這個 Extension 提供 **自動導航 (Auto Navigation)** 功能，並整合 **ROS2 / rosbridge_websocket** 與 **相機影像發布**。  
-使用者可透過 UI 或 ROS Topic 輸入目標座標，讓機器人自動移動到指定位置。
+This extension provides **Auto Navigation** functionality and integrates **ROS2 / rosbridge_websocket** with **camera image publishing**.  
+Users can input target coordinates through the UI or ROS Topics to make the robot automatically move to specified positions.
 
 ---
 
-## 📦 功能
+## Features
 
-- **自動導航**：在 UI 輸入目標座標，機器人會前往目標點  
-- **ROS 整合**：透過 rosbridge 接收 ROS Topic 中的導航座標與停止指令  
-- **相機發布**：支援將 Isaac Sim 的相機畫面與相機資訊發布到 ROS2 Topic  
-- **UI 操作**：提供簡易的控制介面，可輸入座標、開始/停止導航、控制相機發布  
-- **狀態回報**：發布 `/ROBOTNAME/navigation_status` 與 `/ROBOTNAME/robot_pose`  
+- **Auto Navigation**: Input target coordinates in the UI, and the robot will navigate to the target point  
+- **ROS Integration**: Receive navigation coordinates and stop commands from ROS Topics via rosbridge  
+- **Camera Publishing**: Support publishing Isaac Sim camera images and camera info to ROS2 Topics  
+- **UI Controls**: Provides a simple control interface for inputting coordinates, starting/stopping navigation, and controlling camera publishing  
+- **Status Reporting**: Publishes `/ROBOTNAME/navigation_status` and `/ROBOTNAME/robot_pose`  
 
 ---
 
-## 🚀 安裝與使用
+## Installation and Usage
 
-1. **放置 Extension**
-   - 將 `extension.py` 放到 Isaac Sim extension 專案目錄，例如：  
+1. **Place Extension**
+   - Place `extension.py` in your Isaac Sim extension project directory, for example:  
      ```
      <your_isaac_sim_extensions>/isaac.autonav.rosbridge/
      ```
-   - 確保有對應的 `extension.toml`
+   - Ensure you have the corresponding `extension.toml`
 
-2. **啟用 Extension**
-   - 在 Isaac Sim 開啟：`Window > Extension Manager`  
-   - 搜尋 `Auto Navigation with ROS Bridge` → 啟用  
+2. **Enable Extension**
+   - In Isaac Sim, open: `Window > Extension Manager`  
+   - Search for `Auto Navigation with ROS Bridge` → Enable  
 
-3. **啟動模擬**
-   - 載入場景，並確保機器人與相機存在於指定路徑  
-   - 點擊 **▶️ Play**  
+3. **Start Simulation**
+   - Load the scene and ensure the robot and camera exist at the specified paths  
+   - Click **Play**  
 
-4. **導航控制**
-   - 開啟 `Auto Navigation with ROS Bridge` 視窗  
-   - 手動輸入座標後按下 **Go to Target**，或透過 ROS topic 發送目標  
+4. **Navigation Control**
+   - Open the `Auto Navigation with ROS Bridge` window  
+   - Manually input coordinates and press **Go to Target**, or send targets via ROS topics  
 
-5. **ROS 驗證**
-   - 確保 rosbridge_server 正在執行：  
+5. **ROS Verification**
+   - Ensure rosbridge_server is running:  
      ```bash
      ros2 launch rosbridge_server rosbridge_websocket_launch.xml
      ```
-   - 在 ROS 環境檢查：  
+   - Check in ROS environment:  
      ```bash
      ros2 topic echo /ROBOTNAME/navigation_status
      ros2 topic echo /ROBOTNAME/robot_pose
@@ -51,94 +51,94 @@
 
 ## 📡 ROS Topics
 
-### 訂閱 (從 ROS → Isaac Sim)
-- `/ROBOTNAME/navigation_goal` (`geometry_msgs/PoseStamped`)：導航目標座標  
-- `/ROBOTNAME/navigation_coordinates` (`std_msgs/String`)：字串座標輸入 (例如 `"2.0, 3.0, 0.0"`)  
-- `/ROBOTNAME/navigation_stop` (`std_msgs/Empty`)：停止導航  
-- `/ROBOTNAME/tf` (`tf2_msgs/TFMessage`)：TF，用於更新機器人位置與方向  
+### Subscribed (From ROS → Isaac Sim)
+- `/ROBOTNAME/navigation_goal` (`geometry_msgs/PoseStamped`): Navigation target coordinates  
+- `/ROBOTNAME/navigation_coordinates` (`std_msgs/String`): String coordinate input (e.g., `"2.0, 3.0, 0.0"`)  
+- `/ROBOTNAME/navigation_stop` (`std_msgs/Empty`): Stop navigation  
+- `/ROBOTNAME/tf` (`tf2_msgs/TFMessage`): TF for updating robot position and orientation  
 
-### 發布 (從 Isaac Sim → ROS)
-- `/ROBOTNAME/navigation_status` (`std_msgs/String`)：導航狀態回報  
-- `/ROBOTNAME/robot_pose` (`geometry_msgs/PoseStamped`)：機器人當前位置  
-- `/isaac/camera/persp` (`sensor_msgs/Image`)：相機 RGB 影像  
-- `/isaac/camera/persp_camera_info` (`sensor_msgs/CameraInfo`)：相機內參  
+### Published (From Isaac Sim → ROS)
+- `/ROBOTNAME/navigation_status` (`std_msgs/String`): Navigation status report  
+- `/ROBOTNAME/robot_pose` (`geometry_msgs/PoseStamped`): Robot's current position  
+- `/isaac/camera/persp` (`sensor_msgs/Image`): Camera RGB image  
+- `/isaac/camera/persp_camera_info` (`sensor_msgs/CameraInfo`): Camera intrinsics  
 
 ---
 
-## ⚙️ 使用者需要修改的程式碼
+## Code Sections Users Need to Modify
 
-不同使用者需依據場景調整以下程式碼：
+Different users need to adjust the following code based on their scene:
 
-### 1. 機器人路徑 (TODO)
+### 1. Robot Path (TODO)
 ```python
 self.robot_prim_path = "/World/Demo_8F/_R05D00002_only_bottom_sim_"
 ```
-- 修改成你機器人模型的 **USD Prim 路徑**
+- Modify to your robot model's **USD Prim path**
 
 ---
 
-### 2. 相機設置
+### 2. Camera Setup
 ```python
 self.camera_prim_path = "/World/Camera_persp"
 self.camera_topic_name = "/isaac/camera/persp"
 self.camera_frame_id = "camera_persp"
 ```
-- `camera_prim_path`：相機 prim 在 Isaac Sim 的路徑  
-- `camera_topic_name`：ROS Topic 名稱  
-- `camera_frame_id`：ROS 影像的 Frame ID  
+- `camera_prim_path`: Camera prim path in Isaac Sim  
+- `camera_topic_name`: ROS Topic name  
+- `camera_frame_id`: Frame ID for ROS image  
 
 ---
 
-### 3. rosbridge 連線
+### 3. rosbridge Connection
 ```python
 self.ros_bridge_client = RosBridgeWebSocketClient(self, host="localhost", port=9090)
 ```
-- 若 rosbridge_server 在遠端，請修改 host 與 port，例如：  
+- If rosbridge_server is on a remote machine, modify the host and port, for example:  
   ```python
   host="192.168.1.10", port=9090
   ```
 
 ---
 
-### 4. 發布頻率與解析度
-在 `publish_camera_rgb` 與 `publish_camera_info` 可調整：  
+### 4. Publishing Frequency and Resolution
+In `publish_camera_rgb` and `publish_camera_info`, you can adjust:  
 ```python
 freq=30, width=640, height=480
 ```
 
 ---
 
-## 🛠️ 除錯指南
+## Troubleshooting Guide
 
-- **機器人不動**  
-  - 確認 `robot_prim_path` 與場景中的路徑一致  
-- **相機影像無法發布**  
-  - 確認 `camera_prim_path` 是否正確  
-  - 檢查 `omni.replicator.core` 與 `omni.isaac.ros2_bridge` 是否啟用  
-- **ROS 無法連線**  
-  - 確認 `rosbridge_server` 是否在對應 IP/Port 運行  
-- **座標輸入沒反應**  
-  - 請輸入浮點數並按下 Enter，再點擊 **Go to Target**  
+- **Robot doesn't move**  
+  - Verify that `robot_prim_path` matches the path in your scene  
+- **Camera image not publishing**  
+  - Verify that `camera_prim_path` is correct  
+  - Check if `omni.replicator.core` and `omni.isaac.ros2_bridge` are enabled  
+- **ROS connection fails**  
+  - Verify that `rosbridge_server` is running on the corresponding IP/Port  
+- **Coordinate input not responding**  
+  - Please input floating-point numbers and press Enter, then click **Go to Target**  
 
 ---
 
-## 📖 使用流程簡要
+## Usage Workflow Summary
 
-1. 啟動 Isaac Sim 並載入場景  
-2. 修改程式碼中的機器人路徑與相機設置（如有需要）  
-3. 啟用 `Auto Navigation with ROS Bridge` Extension  
-4. 啟動 rosbridge_server (`localhost:9090` 或指定 IP)  
-5. 按 **▶️ Play**  
-6. 使用 UI 或 ROS Topic 發送導航座標  
-7. 驗證導航與相機資料是否正確發布  
+1. Start Isaac Sim and load the scene  
+2. Modify the robot path and camera settings in the code (if needed)  
+3. Enable the `Auto Navigation with ROS Bridge` Extension  
+4. Start rosbridge_server (`localhost:9090` or specified IP)  
+5. Press **Play**  
+6. Send navigation coordinates using the UI or ROS Topics  
+7. Verify that navigation and camera data are published correctly  
 
-## 指令發布範例
+## Command Publishing Example
 
-1. service
-```python
+1. Service
+```bash
 source install/setup.bash
 ```
-```python
+```bash
 ros2 service call /ROBOTNAME/set_goal_pose msgs_interface/srv/SetGoalPose "
 {
 task_mode: 0,
