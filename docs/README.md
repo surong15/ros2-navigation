@@ -49,7 +49,7 @@ Users can input target coordinates through the UI or ROS Topics to make the robo
 
 ---
 
-## 📡 ROS Topics
+## ROS Topics
 
 ### Subscribed (From ROS → Isaac Sim)
 - `/ROBOTNAME/navigation_goal` (`geometry_msgs/PoseStamped`): Navigation target coordinates  
